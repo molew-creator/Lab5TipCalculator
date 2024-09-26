@@ -56,8 +56,31 @@ public class TipCalculatorController {
 
     // called by FXMLLoader to initialize the controller
     public void initialize() {
+
         // 0-4 rounds down, 5-9 rounds up
         currency.setRoundingMode(RoundingMode.HALF_UP);
+
+        //listener for when changes to the total amount display the tip amount and total amount automatically. No need
+        //for the user to click the 'Calculate' button
+        amountTextField.textProperty().addListener(
+                    new ChangeListener<String>() {
+                        @Override
+                        public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                            amountTextField.setText(newValue);
+                            try {
+                                BigDecimal amount = new BigDecimal(amountTextField.getText());
+                                BigDecimal tip = amount.multiply(tipPercentage);
+                                BigDecimal total = amount.add(tip);
+
+                                tipTextField.setText(currency.format(tip));
+                                totalTextField.setText(currency.format(total));
+                            }
+                            catch (NumberFormatException ex) {
+                                System.out.println("Please enter a valid amount");
+                            }
+                        }
+                    }
+        );
 
         // listener for changes to tipPercentageSlider's value
         tipPercentageSlider.valueProperty().addListener(
@@ -68,8 +91,28 @@ public class TipCalculatorController {
                         tipPercentage =
                                 BigDecimal.valueOf(newValue.intValue() / 100.0);
                         tipPercentageLabel.setText(percent.format(tipPercentage));
+
+                        //By adding this code into the listener, the tip amount and total amount are displayed as the user
+                        //is moving the tip percentage slider
+                        try {
+                            BigDecimal amount = new BigDecimal(amountTextField.getText());
+                            BigDecimal tip = amount.multiply(tipPercentage);
+                            BigDecimal total = amount.add(tip);
+
+                            tipTextField.setText(currency.format(tip));
+                            totalTextField.setText(currency.format(total));
+                        }
+                        catch (NumberFormatException ex) {
+                            amountTextField.setText("Enter amount");
+                            amountTextField.selectAll();
+                            amountTextField.requestFocus();
+                        }
+
                     }
                 }
+
         );
+
+        //
     }
 }
